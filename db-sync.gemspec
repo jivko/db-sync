@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.summary       = 'Databse Synchronization Tool'
   spec.description   = 'Tool for synchronizing static tables across environments.'
   spec.homepage      = 'https://github.com/joskov/db-sync'
-  spec.license       = ['MIT']
+  spec.license       = 'MIT'
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   spec.bindir        = 'exe'
