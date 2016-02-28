@@ -1,5 +1,5 @@
 module Db
-  module Sync
-    VERSION = '0.0.1'
+  class Sync
+    VERSION = '0.0.1'.freeze
   end
 end

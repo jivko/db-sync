@@ -1,13 +1,13 @@
 namespace :db do
   namespace :sync do
-    desc 'Dump data from the databse into a file.'
-    task :dump do
-      print 'dumping'
+    desc 'Download data from the databse into files.'
+    task down: :environment do
+      Db::Sync.sync_down
     end
 
-    desc 'Load data from the yaml into a file.'
-    task :load do
-      print 'loading'
+    desc 'Upload data from the files into the database.'
+    task up: :environment do
+      Db::Sync.sync_up
     end
   end
 end
