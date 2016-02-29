@@ -18,10 +18,9 @@ module Db
 
         table_changes = { inserts: [], updates: [], deletes: [] }
 
-        data = File.read(Rails.root.join('db', 'data', "#{table}.yml"))
+        data = File.read(table_filename(table))
         all_records = YAML.load(data)
         current_records = table_model.records.map(&:attributes)
-        print current_records
 
         diff = Db::Sync::Diff.new(current_records, all_records, table_model.pkey)
         print "\n", "inserts\n", diff.inserts, "\n"
@@ -36,7 +35,7 @@ module Db
       working_tables.each do |table|
         print "Saving table [#{table}]\n"
         table_model = data_model(table)
-        File.open(Rails.root.join('db', 'data', "#{table}.yml"), 'w') do |f|
+        File.open(table_filename(table), 'w') do |f|
           current_records = table_model.records.map(&:attributes)
           print current_records
           f << current_records.to_yaml
@@ -52,6 +51,11 @@ module Db
       ActiveRecord::Base.connection.tables.reject do |table|
         %w(schema_info, schema_migrations).include?(table)
       end
+    end
+
+    def self.table_filename(table)
+      # TODO: change data with custom dir
+      File.join(Rails.root || '.', 'db', 'data', "#{table}.yml")
     end
 
     def self.configure
@@ -96,7 +100,6 @@ module Db
 
     # Railtie needed, so that rake tasks are appended, when used as a gem
     class Railtie < Rails::Railtie
-      config.db_sync = ActiveSupport::OrderedOptions.new
       rake_tasks do
         load File.expand_path('../../tasks/db-sync.rake', __FILE__)
       end
