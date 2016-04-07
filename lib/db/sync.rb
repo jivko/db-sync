@@ -13,7 +13,7 @@ module Db
       print "up\n"
       working_tables.each do |table|
         table_model = data_model(table)
-        print "Saving table [#{table}]\n"
+        print "Loading table [#{table}]\n"
         fail 'Tables without id are not supported!' unless table_model.include_id?
 
         table_changes = { inserts: [], updates: [], deletes: [] }
@@ -34,13 +34,16 @@ module Db
       print "down\n"
       working_tables.each do |table|
         print "Saving table [#{table}]\n"
-        table_model = data_model(table)
         File.open(table_filename(table), 'w') do |f|
-          current_records = table_model.records.map(&:attributes)
-          print current_records
+          current_records = table_model_records(table)
           f << current_records.to_yaml
         end
       end
+    end
+
+    def self.table_model_records(table)
+      table_model = data_model(table)
+      table_model.records.map(&:attributes)
     end
 
     def self.working_tables
