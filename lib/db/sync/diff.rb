@@ -1,18 +1,18 @@
 class Db::Sync::Diff
-  attr_accessor :left, :right, :pkey
+  attr_accessor :original, :replace_with, :pkey
 
-  def initialize(left, right, pkey)
-    self.left = left
-    self.right = right
+  def initialize(original, replace_with, pkey)
+    self.original = original
+    self.replace_with = replace_with
     self.pkey = pkey
   end
 
   def inserts
     results = []
     # change to iteration based
-    left.each do |item|
-      found = search(right, item)
-      results << item if found.blank?
+    replace_with.each do |item|
+      found = search(original, item)
+      results << item.dup if found.blank?
     end
     results
   end
@@ -20,9 +20,9 @@ class Db::Sync::Diff
   def deletes
     results = []
     # change to iteration based
-    right.each do |item|
-      found = search(left, item)
-      results << item if found.blank?
+    original.each do |item|
+      found = search(replace_with, item)
+      results << item.slice(*pkey) if found.blank?
     end
     results
   end
@@ -30,15 +30,16 @@ class Db::Sync::Diff
   def updates
     results = []
     # change to iteration based
-    left.each do |item|
-      found = search(right, item)
+    original.each do |item|
+      found = search(replace_with, item)
       next if found.blank?
       next if found == item
-      print "old\n"
-      print found, "\n"
-      print "new\n"
-      print item, "\n"
-      results << item
+      changes = {}
+      found.each do |key, value|
+        next if value == item[key]
+        changes[key] = value
+      end
+      results << { key: item.slice(*pkey), changes: changes }
     end
     results
   end
@@ -47,5 +48,6 @@ class Db::Sync::Diff
     stack.each do |item|
       return item if item.slice(*pkey) == search_for.slice(*pkey)
     end
+    false
   end
 end

@@ -16,8 +16,6 @@ module Db
         print "Loading table [#{table}]\n"
         fail 'Tables without id are not supported!' unless table_model.include_id?
 
-        table_changes = { inserts: [], updates: [], deletes: [] }
-
         data = File.read(table_filename(table))
         all_records = YAML.load(data)
         current_records = table_model.records.map(&:attributes)
