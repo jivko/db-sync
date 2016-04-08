@@ -2,6 +2,7 @@ require 'db/sync/version'
 require 'db/sync/diff'
 require 'rails'
 require 'active_record'
+require 'db/sync/model'
 
 module Db
   # Databse Sync
@@ -106,38 +107,8 @@ module Db
     end
 
     def self.data_model(table)
-      result = Class.new(ActiveRecord::Base) do
-        def self.include_id?
-          attribute_names.include?('id')
-        end
-
-        def self.pkey
-          if include_id?
-            ['id']
-          else
-            attribute_names.sort
-          end
-        end
-
-        def self.records
-          order(pkey)
-        end
-      end
-
+      result = Class.new(Db::Sync::Model)
       result.table_name = table
-
-      result.send(:define_method, :unique_data) do
-        attributes.slice(*self.class.pkey)
-      end
-
-      result.send(:define_method, :compare_unique_data) do |other|
-        self.class.pkey.each do |key|
-          attributes[key] <=> other[key]
-        end
-      end
-
-      result.primary_key = nil unless result.include_id?
-
       result
     end
 
