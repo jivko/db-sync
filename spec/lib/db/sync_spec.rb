@@ -48,6 +48,9 @@ describe Db::Sync do
 
     it 'matches the records exactly' do
       Db::Sync.insert_records(:items, original_records)
+      expect(Db::Sync).to receive(:insert_records).with('items', [])
+      expect(Db::Sync).to receive(:delete_records).with('items', [])
+      expect(Db::Sync).to receive(:update_records).with('items', [])
       Db::Sync.sync_up
     end
 
