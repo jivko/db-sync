@@ -3,6 +3,7 @@ ActiveRecord::Schema.define do
     t.string :title
     t.string :body
     t.integer :number
+    t.boolean :available
     t.timestamps(null: false)
   end
 end

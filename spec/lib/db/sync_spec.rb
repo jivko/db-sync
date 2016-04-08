@@ -10,35 +10,22 @@ describe Db::Sync do
       config.tables = ['items']
     end
   end
-  let(:some_records_insert_sql) do
-    insert_sql = 'INSERT INTO items (id, title, body, number, created_at, updated_at) VALUES '
-    insert_sql += "(3, 't1', 'b1', 1, '13:00:00 01-01-2016', '13:00:00 01-01-2016'),"
-    insert_sql += "(4, 't2', 'b2', 2, '13:00:00 01-01-2016', '13:00:00 01-01-2016'),"
-    insert_sql += "(5, 't3', 'b3', 3, '13:00:00 01-01-2016', '13:00:00 01-01-2016')"
-    insert_sql
-  end
-  let(:some_records) do
+  let(:arbitrary_date) { Time.new(2016, 1, 1, 13, 0, 0, '+00:00') }
+  let(:truncate_sql) { 'DELETE FROM items' }
+  let(:original_records) do
     [
-      { 'id' => 3, 'title' => 't1', 'body' => 'b1', 'number' => 1, 'created_at' => '13:00:00 01-01-2016', 'updated_at' => '13:00:00 01-01-2016' },
-      { 'id' => 4, 'title' => 't2', 'body' => 'b2', 'number' => 2, 'created_at' => '13:00:00 01-01-2016', 'updated_at' => '13:00:00 01-01-2016' },
-      { 'id' => 5, 'title' => 't3', 'body' => 'b3', 'number' => 3, 'created_at' => '13:00:00 01-01-2016', 'updated_at' => '13:00:00 01-01-2016' }
-    ]
-  end
-  let(:updated_records_insert_sql) do
-    insert_sql = 'INSERT INTO items (id, title, body, number, created_at, updated_at) VALUES '
-    insert_sql += "(3, 't1', 'b1', 1, '13:00:00 01-01-2016', '13:00:00 01-01-2016'),"
-    insert_sql += "(4, 't3', 'b2', 2, '13:00:00 01-01-2016', '13:00:00 01-01-2016'),"
-    insert_sql += "(6, 't3', 'b3', 3, '13:00:00 01-01-2016', '13:00:00 01-01-2016')"
-    insert_sql
+      { id: 3, title: 't1', body: 'b1', number: 1, available: true, created_at: arbitrary_date, updated_at: arbitrary_date },
+      { id: 4, title: 't2', body: 'b2', number: 2, available: true, created_at: arbitrary_date, updated_at: arbitrary_date },
+      { id: 5, title: 't3', body: 'b3', number: 3, available: false, created_at: arbitrary_date, updated_at: arbitrary_date }
+    ].map(&:stringify_keys)
   end
   let(:updated_records) do
     [
-      { 'id' => 3, 'title' => 't1', 'body' => 'b1', 'number' => 1, 'created_at' => '13:00:00 01-01-2016', 'updated_at' => '13:00:00 01-01-2016' },
-      { 'id' => 4, 'title' => 't3', 'body' => 'b2', 'number' => 2, 'created_at' => '13:00:00 01-01-2016', 'updated_at' => '13:00:00 01-01-2016' },
-      { 'id' => 6, 'title' => 't3', 'body' => 'b3', 'number' => 3, 'created_at' => '13:00:00 01-01-2016', 'updated_at' => '13:00:00 01-01-2016' }
-    ]
+      { id: 3, title: 't1', body: 'b1', number: 1, available: true, created_at: arbitrary_date, updated_at: arbitrary_date },
+      { id: 4, title: 't3', body: 'b2', number: 2, available: true, created_at: arbitrary_date, updated_at: arbitrary_date },
+      { id: 6, title: 't3', body: 'b3', number: 3, available: false, created_at: arbitrary_date, updated_at: arbitrary_date }
+    ].map(&:stringify_keys)
   end
-  let(:truncate_sql) { 'DELETE FROM items' }
 
   describe 'configuration' do
     it 'has a version number' do
@@ -55,27 +42,42 @@ describe Db::Sync do
   end
 
   describe 'sync up' do
-    it 'matches the records exactly' do
-      ActiveRecord::Base.connection.execute(some_records_insert_sql)
-      Db::Sync.sync_up
+    after(:each) do
       ActiveRecord::Base.connection.execute(truncate_sql)
     end
 
-    it 'makes changes when neccessary' do
-      ActiveRecord::Base.connection.execute(updated_records_insert_sql)
+    it 'matches the records exactly' do
+      Db::Sync.insert_records(:items, original_records)
       Db::Sync.sync_up
-      ActiveRecord::Base.connection.execute(truncate_sql)
+    end
+
+    it 'makes changes when neccessary' do
+      Db::Sync.insert_records(:items, updated_records)
+      Db::Sync.sync_up
+      res = Db::Sync.table_model_records('items')
+      expect(res).to eq(original_records)
     end
   end
 
   describe 'sync down' do
+    after(:each) do
+      ActiveRecord::Base.connection.execute(truncate_sql)
+    end
+
     it 'matches the records exactly' do
-      ActiveRecord::Base.connection.execute(some_records_insert_sql)
+      Db::Sync.insert_records(:items, original_records)
       Db::Sync.sync_down
       save_stream.rewind
       data = save_stream.read
       expect(data).to eq(load_data)
-      ActiveRecord::Base.connection.execute(truncate_sql)
+    end
+
+    it 'do not match updated records' do
+      Db::Sync.insert_records(:items, updated_records)
+      Db::Sync.sync_down
+      save_stream.rewind
+      data = save_stream.read
+      expect(data).to_not eq(load_data)
     end
   end
 end

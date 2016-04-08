@@ -10,10 +10,8 @@ module Db
 
     def self.sync_up
       # TODO: change to row by row loading
-      print "up\n"
       working_tables.each do |table|
         table_model = data_model(table)
-        print "Loading table [#{table}]\n"
         fail 'Tables without id are not supported!' unless table_model.include_id?
 
         data = File.read(table_filename(table))
@@ -21,17 +19,60 @@ module Db
         current_records = table_model.records.map(&:attributes)
 
         diff = Db::Sync::Diff.new(current_records, all_records, table_model.pkey)
-        print "\n", "inserts\n", diff.inserts, "\n"
-        print "deletes\n", diff.deletes, "\n"
-        print "updates\n", diff.updates, "\n"
+        insert_records(table, diff.inserts)
+        delete_records(table, diff.deletes)
+        update_records(table, diff.updates)
+      end
+    end
+
+    def self.insert_records(table, inserts)
+      inserts.each do |record|
+        insert_manager = Arel::InsertManager.new(ActiveRecord::Base)
+        arel_model = Arel::Table.new(table)
+        insert_data = record.map do |key, value|
+          [arel_model[key], value]
+        end
+        insert_manager.insert(insert_data)
+        # print "#{insert_manager.to_sql}\n"
+        ActiveRecord::Base.connection.execute(insert_manager.to_sql)
+      end
+    end
+
+    def self.delete_records(table, deletes)
+      arel_model = Arel::Table.new(table)
+
+      deletes.each do |delete_params|
+        delete_manager = Arel::DeleteManager.new(ActiveRecord::Base)
+        delete_manager.from(arel_model)
+        delete_data = delete_params.map do |key, value|
+          [arel_model[key].eq(value)]
+        end
+        delete_manager.where(delete_data)
+        # print "#{delete_manager.to_sql}\n"
+        ActiveRecord::Base.connection.execute(delete_manager.to_sql)
+      end
+    end
+
+    def self.update_records(table, updates)
+      arel_model = Arel::Table.new(table)
+
+      updates.each do |update|
+        update_manager = Arel::UpdateManager.new(ActiveRecord::Base)
+        update_key = update[:key].map do |key, value|
+          [arel_model[key].eq(value)]
+        end
+        update_changes = update[:changes].map do |key, value|
+          [arel_model[key], value]
+        end
+        update_manager.table(arel_model).where(update_key).set(update_changes)
+        # print "#{update_manager.to_sql}\n"
+        ActiveRecord::Base.connection.execute(update_manager.to_sql)
       end
     end
 
     def self.sync_down
       # TODO: change to row by row saving
-      print "down\n"
       working_tables.each do |table|
-        print "Saving table [#{table}]\n"
         File.open(table_filename(table), 'w') do |f|
           current_records = table_model_records(table)
           f << current_records.to_yaml
@@ -40,8 +81,16 @@ module Db
     end
 
     def self.table_model_records(table)
+      # TODO: Some kind of paging
       table_model = data_model(table)
       table_model.records.map(&:attributes)
+    end
+
+    # Old Method
+    def self.table_model_records_with_arel(table)
+      table_model = Arel::Table.new(table, ActiveRecord::Base)
+      select_manager = table_model.project(Arel.star)
+      ActiveRecord::Base.connection.select_all(select_manager).to_hash
     end
 
     def self.working_tables
