@@ -86,13 +86,6 @@ module Db
       table_model.records.map(&:attributes)
     end
 
-    # Old Method
-    def self.table_model_records_with_arel(table)
-      table_model = Arel::Table.new(table, ActiveRecord::Base)
-      select_manager = table_model.project(Arel.star)
-      ActiveRecord::Base.connection.select_all(select_manager).to_hash
-    end
-
     def self.working_tables
       config.tables || all_tables
     end

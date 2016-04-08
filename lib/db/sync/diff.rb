@@ -9,7 +9,7 @@ class Db::Sync::Diff
 
   def inserts
     results = []
-    # change to iteration based
+    # TODO: change to iteration based
     replace_with.each do |item|
       found = search(original, item)
       results << item.dup if found.blank?
@@ -19,7 +19,7 @@ class Db::Sync::Diff
 
   def deletes
     results = []
-    # change to iteration based
+    # TODO: change to iteration based
     original.each do |item|
       found = search(replace_with, item)
       results << item.slice(*pkey) if found.blank?
@@ -29,7 +29,7 @@ class Db::Sync::Diff
 
   def updates
     results = []
-    # change to iteration based
+    # TODO: change to iteration based
     original.each do |item|
       found = search(replace_with, item)
       next if found.blank?
