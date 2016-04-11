@@ -12,7 +12,7 @@ module Db
     attr_accessor :sync_dir
 
     def initialize(sync_dir = nil)
-      self.sync_dir = sync_dir || 'data'
+      self.sync_dir = File.join((Rails.root || '.'), 'db', (sync_dir || 'data'))
     end
 
     def log
@@ -96,6 +96,7 @@ module Db
 
     def sync_down
       # TODO: change to row by row saving
+      Dir.mkdir(sync_dir)
       working_tables.each do |table|
         File.open(table_filename(table), 'w') do |f|
           current_records = table_model_records(table)
@@ -122,7 +123,7 @@ module Db
 
     def table_filename(table)
       # TODO: change data with custom dir
-      File.join(Rails.root || '.', 'db', sync_dir, "#{table}.yml")
+      File.join(sync_dir, "#{table}.yml")
     end
 
     def configure

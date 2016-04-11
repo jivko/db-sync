@@ -6,6 +6,7 @@ describe Db::Sync do
   before(:each) do
     allow(File).to receive(:open).with('./db/data/items.yml', 'w').and_yield(save_stream)
     allow(File).to receive(:read).with('./db/data/items.yml').and_return(load_data)
+    allow(Dir).to receive(:mkdir).with('./db/data')
     Db::Sync.configure do |config|
       config.tables = ['items']
     end
