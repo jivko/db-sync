@@ -50,6 +50,7 @@ class Db::Sync::Diff
   end
 
   def check_for_update(original_item, replace_item)
+    return if original_item.nil? || replace_item.nil?
     changes = {}
     replace_item.each do |key, value|
       next if value == original_item[key]
@@ -60,6 +61,7 @@ class Db::Sync::Diff
   end
 
   def compare(item1, item2)
+    return 0 if item1.nil? && item2.nil?
     return -1 if item2.nil?
     return 1 if item1.nil?
     self.class.compare(item1.slice(*pkey), item2.slice(*pkey))

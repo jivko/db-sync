@@ -26,6 +26,7 @@ describe Db::Sync do
       { id: 6, title: 't3', body: 'b3', number: 3, available: false, created_at: arbitrary_date, updated_at: arbitrary_date }
     ].map(&:stringify_keys)
   end
+  let(:synchronizer) { Db::Sync.new }
 
   describe 'configuration' do
     it 'has a version number' do
@@ -37,7 +38,7 @@ describe Db::Sync do
     end
 
     it 'working tables' do
-      expect(Db::Sync.working_tables).to contain_exactly('items')
+      expect(synchronizer.working_tables).to contain_exactly('items')
     end
   end
 
@@ -47,18 +48,23 @@ describe Db::Sync do
     end
 
     it 'matches the records exactly' do
-      Db::Sync.insert_records(:items, original_records)
-      expect(Db::Sync).to receive(:insert_records).with('items', [])
-      expect(Db::Sync).to receive(:delete_records).with('items', [])
-      expect(Db::Sync).to receive(:update_records).with('items', [])
-      Db::Sync.sync_up
+      synchronizer.insert_records(:items, original_records)
+      expect(synchronizer).to receive(:insert_records).with('items', [], true)
+      expect(synchronizer).to receive(:delete_records).with('items', [], true)
+      expect(synchronizer).to receive(:update_records).with('items', [], true)
+      synchronizer.sync_up
     end
 
     it 'makes changes when neccessary' do
-      Db::Sync.insert_records(:items, updated_records)
-      Db::Sync.sync_up
-      res = Db::Sync.table_model_records('items')
+      synchronizer.insert_records(:items, updated_records)
+      synchronizer.sync_up
+      res = synchronizer.table_model_records('items')
       expect(res).to eq(original_records)
+    end
+
+    it 'has log of operations' do
+      synchronizer.sync_up
+      expect(synchronizer.log.length).to eq(3)
     end
   end
 
@@ -68,16 +74,16 @@ describe Db::Sync do
     end
 
     it 'matches the records exactly' do
-      Db::Sync.insert_records(:items, original_records)
-      Db::Sync.sync_down
+      synchronizer.insert_records(:items, original_records)
+      synchronizer.sync_down
       save_stream.rewind
       data = save_stream.read
       expect(data).to eq(load_data)
     end
 
     it 'do not match updated records' do
-      Db::Sync.insert_records(:items, updated_records)
-      Db::Sync.sync_down
+      synchronizer.insert_records(:items, updated_records)
+      synchronizer.sync_down
       save_stream.rewind
       data = save_stream.read
       expect(data).to_not eq(load_data)

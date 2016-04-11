@@ -23,7 +23,18 @@ class Db::Sync::Model < ActiveRecord::Base
     end
   end
 
+  def self.ordered_attributes
+    pkey + (attribute_names - pkey).sort
+  end
+
   def self.records
-    order(pkey)
+    attributes_order = ordered_attributes
+    order(pkey).map do |record|
+      res = {}
+      attributes_order.each do |key|
+        res[key] = record[key]
+      end
+      res
+    end
   end
 end
