@@ -132,7 +132,7 @@ module Db
     # Railtie needed, so that rake tasks are appended, when used as a gem
     class Railtie < Rails::Railtie
       rake_tasks do
-        load File.expand_path('../../tasks/db-sync.rake', __FILE__)
+        load File.expand_path('../../tasks/db.rake', __FILE__)
       end
     end
   end
