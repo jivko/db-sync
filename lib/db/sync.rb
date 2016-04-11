@@ -9,6 +9,12 @@ module Db
   class Sync
     include ActiveSupport::Configurable
 
+    attr_accessor :sync_dir
+
+    def initialize(sync_dir = nil)
+      self.sync_dir = sync_dir || 'data'
+    end
+
     def log
       @log ||= []
     end
@@ -116,7 +122,7 @@ module Db
 
     def table_filename(table)
       # TODO: change data with custom dir
-      File.join(Rails.root || '.', 'db', 'data', "#{table}.yml")
+      File.join(Rails.root || '.', 'db', sync_dir, "#{table}.yml")
     end
 
     def configure

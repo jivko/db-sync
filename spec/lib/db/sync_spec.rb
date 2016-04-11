@@ -40,6 +40,11 @@ describe Db::Sync do
     it 'working tables' do
       expect(synchronizer.working_tables).to contain_exactly('items')
     end
+
+    it 'can have changed dir' do
+      synchronizer = Db::Sync.new('other_dir')
+      expect(synchronizer.table_filename('items')).to eq('./db/other_dir/items.yml')
+    end
   end
 
   describe 'sync up' do
