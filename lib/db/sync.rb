@@ -96,7 +96,7 @@ module Db
 
     def sync_down
       # TODO: change to row by row saving
-      Dir.mkdir(sync_dir)
+      Dir.mkdir(sync_dir) unless Dir.exist?(sync_dir)
       working_tables.each do |table|
         File.open(table_filename(table), 'w') do |f|
           current_records = table_model_records(table)

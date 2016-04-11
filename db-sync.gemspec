@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.name          = 'db-sync'
   spec.version       = Db::Sync::VERSION
   spec.authors       = ['Vasil Joskov']
-  spec.date          = '2016-04-10'
+  spec.date          = Date.today
 
   spec.summary       = 'Database Synchronization Tool'
   spec.description   = 'Tool for synchronizing static tables across environments.'
