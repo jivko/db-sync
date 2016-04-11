@@ -8,10 +8,10 @@ namespace :db do
 
     desc 'Upload data from the files into the database.'
     task up: :environment do
-      commit = ENV['commit'] == 'true'
+      commit = ENV['commit'].present? ? ENV['commit'] == 'true' : nil
       synchronizer = Db::Sync.new
       sync_up_and_print(synchronizer, commit)
-      if !commit && synchronizer.log.present?
+      if commit.nil? && synchronizer.log.present?
         print "Commit Changes? [y/n]\n"
         sync_up_and_print(synchronizer, true) if STDIN.gets.chomp == 'y'
       end
