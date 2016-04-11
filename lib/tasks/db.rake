@@ -10,7 +10,7 @@ namespace :db do
     task up: :environment do
       commit = ENV['commit'].present? ? ENV['commit'] == 'true' : nil
       synchronizer = Db::Sync.new(sync_dir)
-      sync_up_and_print(synchronizer, sync_dir, commit)
+      sync_up_and_print(synchronizer, commit)
       if commit.nil? && synchronizer.log.present?
         print "Commit Changes? [y/n]\n"
         sync_up_and_print(synchronizer, true) if STDIN.gets.chomp == 'y'
