@@ -34,6 +34,7 @@ module Db
         delete_records(table, diff.deletes, commit)
         update_records(table, diff.updates, commit)
         insert_records(table, diff.inserts, commit)
+        # TODO: fix auto increments
       end
     end
 
