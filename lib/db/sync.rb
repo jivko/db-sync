@@ -31,9 +31,9 @@ module Db
         current_records = table_model.records
 
         diff = Db::Sync::Diff.new(current_records, all_records, table_model.pkey)
-        insert_records(table, diff.inserts, commit)
         delete_records(table, diff.deletes, commit)
         update_records(table, diff.updates, commit)
+        insert_records(table, diff.inserts, commit)
       end
     end
 
