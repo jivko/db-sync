@@ -9,10 +9,11 @@ module Db
   class Sync
     include ActiveSupport::Configurable
 
-    attr_accessor :sync_dir
+    attr_accessor :sync_dir, :custom_tables
 
-    def initialize(sync_dir = nil)
+    def initialize(sync_dir = nil, tables = nil)
       self.sync_dir = File.join((Rails.root || '.'), 'db', (sync_dir || 'data'))
+      self.custom_tables = tables
     end
 
     def log
@@ -113,7 +114,7 @@ module Db
     end
 
     def working_tables
-      config.tables || all_tables
+      custom_tables || config.tables || all_tables
     end
 
     def all_tables

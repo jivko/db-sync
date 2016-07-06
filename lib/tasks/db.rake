@@ -2,16 +2,16 @@ namespace :db do
   namespace :sync do
     desc 'Download data from the databse into files.'
     task down: :environment do
-      # TODO: custom tables option
-      synchronizer = Db::Sync.new(sync_dir)
+      tables = ENV['tables'].present? ? ENV['tables'].split(',') : nil
+      synchronizer = Db::Sync.new(sync_dir, tables)
       synchronizer.sync_down
     end
 
     desc 'Upload data from the files into the database.'
     task up: :environment do
-      # TODO: custom tables option
+      tables = ENV['tables'].present? ? ENV['tables'].split(',') : nil
       commit = ENV['commit'].present? ? ENV['commit'] == 'true' : nil
-      synchronizer = Db::Sync.new(sync_dir)
+      synchronizer = Db::Sync.new(sync_dir, tables)
       sync_up_and_print(synchronizer, commit)
       if commit.nil? && synchronizer.log.present?
         print "Commit Changes? [y/n]\n"
