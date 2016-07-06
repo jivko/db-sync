@@ -1,13 +1,13 @@
 namespace :db do
   namespace :sync do
-    desc 'Download data from the databse into files.'
+    desc 'Download data from the databse into files. [commit=true/false tables=table1,table2]'
     task down: :environment do
       tables = ENV['tables'].present? ? ENV['tables'].split(',') : nil
       synchronizer = Db::Sync.new(sync_dir, tables)
       synchronizer.sync_down
     end
 
-    desc 'Upload data from the files into the database.'
+    desc 'Upload data from the files into the database. [commit=true/false tables=table1,table2]'
     task up: :environment do
       tables = ENV['tables'].present? ? ENV['tables'].split(',') : nil
       commit = ENV['commit'].present? ? ENV['commit'] == 'true' : nil
