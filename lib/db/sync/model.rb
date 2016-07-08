@@ -1,6 +1,8 @@
 class Db::Sync::Model < ActiveRecord::Base
   @abstract_class = true
 
+  self.inheritance_column = nil
+
   def unique_data
     attributes.slice(*self.class.pkey)
   end

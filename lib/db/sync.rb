@@ -124,7 +124,6 @@ module Db
     end
 
     def table_filename(table)
-      # TODO: change data with custom dir
       File.join(sync_dir, "#{table}.yml")
     end
 
