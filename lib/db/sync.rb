@@ -44,7 +44,7 @@ module Db
         log << "[#{table}] INSERT #{record}"
         next unless commit
 
-        insert_manager = Arel::InsertManager.new(ActiveRecord::Base)
+        insert_manager = Arel::InsertManager.new
         arel_model = Arel::Table.new(table)
         insert_data = record.map do |key, value|
           [arel_model[key], value]
@@ -63,7 +63,7 @@ module Db
         log << "[#{table}] DELETE #{delete_params}"
         next unless commit
 
-        delete_manager = Arel::DeleteManager.new(ActiveRecord::Base)
+        delete_manager = Arel::DeleteManager.new
         delete_manager.from(arel_model)
         delete_data = delete_params.map do |key, value|
           [arel_model[key].eq(value)]
@@ -82,7 +82,7 @@ module Db
         log << "[#{table}] UPDATE #{update[:key]} with #{update[:changes]}"
         next unless commit
 
-        update_manager = Arel::UpdateManager.new(ActiveRecord::Base)
+        update_manager = Arel::UpdateManager.new
         update_key = update[:key].map do |key, value|
           [arel_model[key].eq(value)]
         end
